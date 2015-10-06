@@ -4,7 +4,8 @@ import math
 import uuid
 
 # django imports
-from django.contrib.contenttypes import generic
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.cache import cache
@@ -190,6 +191,7 @@ class Category(models.Model):
         ordering = ("position", )
         verbose_name = _('Category')
         verbose_name_plural = _('Categories')
+        app_label = 'catalog'
 
     def __unicode__(self):
         return u"%s (%s)" % (self.name, self.slug)
@@ -599,7 +601,7 @@ class Product(models.Model):
     unit = models.CharField(_(u"Quantity field unit"), blank=True, max_length=20, choices=LFS_UNITS)
     short_description = models.TextField(_(u"Short description"), blank=True)
     description = models.TextField(_(u"Description"), blank=True)
-    images = generic.GenericRelation("Image", verbose_name=_(u"Images"),
+    images = GenericRelation("Image", verbose_name=_(u"Images"),
         object_id_field="content_id", content_type_field="content_type")
 
     meta_title = models.CharField(_(u"Meta title"), blank=True, default="<name>", max_length=80)
@@ -693,6 +695,7 @@ class Product(models.Model):
 
     class Meta:
         ordering = ("name", )
+        app_label = 'catalog'
 
     def __unicode__(self):
         return u"%s (%s)" % (self.name, self.slug)
@@ -2026,6 +2029,7 @@ class ProductAccessories(models.Model):
     class Meta:
         ordering = ("position", )
         verbose_name_plural = "Product accessories"
+        app_label = 'catalog'
 
     def __unicode__(self):
         return u"%s -> %s" % (self.product.name, self.accessory.name)
@@ -2059,6 +2063,7 @@ class PropertyGroup(models.Model):
 
     class Meta:
         ordering = ("position", )
+        app_label = 'catalog'
 
     def __unicode__(self):
         return self.name
@@ -2182,6 +2187,7 @@ class Property(models.Model):
     class Meta:
         verbose_name_plural = _(u"Properties")
         ordering = ["position"]
+        app_label = 'catalog'
 
     def __unicode__(self):
         return self.name
@@ -2240,6 +2246,7 @@ class FilterStep(models.Model):
 
     class Meta:
         ordering = ["start"]
+        app_label = 'catalog'
 
     def __unicode__(self):
         return u"%s %s" % (self.property.name, self.start)
@@ -2270,6 +2277,7 @@ class GroupsPropertiesRelation(models.Model):
     class Meta:
         ordering = ("position", )
         unique_together = ("group", "property")
+        app_label = 'catalog'
 
 
 class ProductsPropertiesRelation(models.Model):
@@ -2298,6 +2306,7 @@ class ProductsPropertiesRelation(models.Model):
     class Meta:
         ordering = ("position", )
         unique_together = ("product", "property")
+        app_label = 'catalog'
 
 
 class PropertyOption(models.Model):
@@ -2333,6 +2342,7 @@ class PropertyOption(models.Model):
 
     class Meta:
         ordering = ["position"]
+        app_label = 'catalog'
 
     def __unicode__(self):
         return self.name
@@ -2378,6 +2388,7 @@ class ProductPropertyValue(models.Model):
 
     class Meta:
         unique_together = ("product", "property", "property_group", "value", "type")
+        app_label = 'catalog'
 
     def __unicode__(self):
         property_group_name = self.property_group.name if self.property_group_id else ''
@@ -2425,7 +2436,7 @@ class Image(models.Model):
     """
     content_type = models.ForeignKey(ContentType, verbose_name=_(u"Content type"), related_name="image", blank=True, null=True)
     content_id = models.PositiveIntegerField(_(u"Content id"), blank=True, null=True)
-    content = generic.GenericForeignKey(ct_field="content_type", fk_field="content_id")
+    content = GenericForeignKey(ct_field="content_type", fk_field="content_id")
 
     title = models.CharField(_(u"Title"), blank=True, max_length=100)
     image = ImageWithThumbsField(_(u"Image"), upload_to="images", blank=True, null=True, sizes=THUMBNAIL_SIZES)
@@ -2433,6 +2444,7 @@ class Image(models.Model):
 
     class Meta:
         ordering = ("position", )
+        app_label = 'catalog'
 
     def __unicode__(self):
         return self.title
@@ -2468,7 +2480,7 @@ class File(models.Model):
 
     content_type = models.ForeignKey(ContentType, verbose_name=_(u"Content type"), related_name="files", blank=True, null=True)
     content_id = models.PositiveIntegerField(_(u"Content id"), blank=True, null=True)
-    content = generic.GenericForeignKey(ct_field="content_type", fk_field="content_id")
+    content = GenericForeignKey(ct_field="content_type", fk_field="content_id")
 
     position = models.SmallIntegerField(default=999)
     description = models.CharField(blank=True, max_length=100)
@@ -2476,6 +2488,7 @@ class File(models.Model):
 
     class Meta:
         ordering = ("position", )
+        app_label = 'catalog'
 
     def __unicode__(self):
         return self.title
@@ -2508,11 +2521,12 @@ class StaticBlock(models.Model):
     name = models.CharField(_(u"Name"), max_length=30)
     display_files = models.BooleanField(_(u"Display files"), default=True)
     html = models.TextField(_(u"HTML"), blank=True)
-    files = generic.GenericRelation(File, verbose_name=_(u"Files"), object_id_field="content_id", content_type_field="content_type")
+    files = GenericRelation(File, verbose_name=_(u"Files"), object_id_field="content_id", content_type_field="content_type")
     position = models.SmallIntegerField(_(u"Position"), default=1000)
 
     class Meta:
         ordering = ("position", )
+        app_label = 'catalog'
 
     def __unicode__(self):
         return self.name
@@ -2544,6 +2558,7 @@ class DeliveryTime(models.Model):
 
     class Meta:
         ordering = ("min", )
+        app_label = 'catalog'
 
     def __unicode__(self):
         return self.round().as_string()
@@ -2756,6 +2771,7 @@ class ProductAttachment(models.Model):
 
     class Meta:
         ordering = ("position", )
+        app_label = 'catalog'
 
     def get_url(self):
         if self.file.url:

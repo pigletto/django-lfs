@@ -14,5 +14,11 @@ class Supplier(models.Model):
     slug = models.SlugField(_(u"Slug"), unique=True, max_length=80)
     active = models.BooleanField(default=True)
 
+    class Meta:
+        app_label = 'supplier'
+
     def __unicode__(self):
         return u"%s" % (self.name)
+
+    class Meta:
+        app_label = 'supplier'

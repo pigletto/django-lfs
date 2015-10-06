@@ -4,8 +4,8 @@ import uuid
 # django imports
 from django.db import models
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes import generic
 from django.utils.translation import ugettext_lazy as _
 
 # lfs imports
@@ -72,11 +72,11 @@ class Order(models.Model):
 
     sa_content_type = models.ForeignKey(ContentType, related_name="order_shipping_address")
     sa_object_id = models.PositiveIntegerField()
-    shipping_address = generic.GenericForeignKey('sa_content_type', 'sa_object_id')
+    shipping_address = GenericForeignKey('sa_content_type', 'sa_object_id')
 
     ia_content_type = models.ForeignKey(ContentType, related_name="order_invoice_address")
     ia_object_id = models.PositiveIntegerField()
-    invoice_address = generic.GenericForeignKey('ia_content_type', 'ia_object_id')
+    invoice_address = GenericForeignKey('ia_content_type', 'ia_object_id')
 
     shipping_method = models.ForeignKey(ShippingMethod, verbose_name=_(u"Shipping Method"), blank=True, null=True)
     shipping_price = models.FloatField(_(u"Shipping Price"), default=0.0)
@@ -103,6 +103,7 @@ class Order(models.Model):
 
     class Meta:
         ordering = ("-created", )
+        app_label = 'order'
 
     def __unicode__(self):
         return u"%s (%s %s)" % (self.created.strftime("%x %X"), self.customer_firstname, self.customer_lastname)
@@ -214,6 +215,9 @@ class OrderItem(models.Model):
 
         return properties
 
+    class Meta:
+        app_label = 'order'
+
 
 class OrderItemPropertyValue(models.Model):
     """Stores a value for a property and order item.
@@ -234,6 +238,9 @@ class OrderItemPropertyValue(models.Model):
     property = models.ForeignKey(Property, verbose_name=_(u"Property"))
     value = models.CharField("Value", blank=True, max_length=100)
 
+    class Meta:
+        app_label = 'order'
+
 
 class OrderDeliveryTime(lfs.catalog.models.DeliveryTime):
     order = models.OneToOneField(Order, verbose_name=_('Order'), related_name='delivery_time')
@@ -244,3 +251,4 @@ class OrderDeliveryTime(lfs.catalog.models.DeliveryTime):
     class Meta:
         verbose_name = _(u'Order delivery time')
         verbose_name_plural = _(u'Order delivery times')
+        app_label = 'order'

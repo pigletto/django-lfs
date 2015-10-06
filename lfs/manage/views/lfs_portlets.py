@@ -30,6 +30,7 @@ def portlets_inline(request, obj, template_name="manage/portlets/portlets_inline
     parent_for_portlets = obj.get_parent_for_portlets()
     if parent_for_portlets:
         parent_slots = portlets.utils.get_slots(parent_for_portlets)
+
     else:
         parent_slots = None
 
@@ -79,7 +80,7 @@ def add_portlet(request, object_type_id, object_id, template_name="manage/portle
     obj = object_ct.get_object_for_this_type(pk=object_id)
 
     # Get the portlet type
-    portlet_type = request.REQUEST.get("portlet_type", "")
+    portlet_type = (request.POST if request.method == 'POST' else request.GET).get("portlet_type", "")
 
     if request.method == "POST":
         try:

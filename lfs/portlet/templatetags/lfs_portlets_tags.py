@@ -5,7 +5,6 @@ from django.core.cache import cache
 from django.utils.translation import ugettext_lazy as _
 
 # portlets imports
-import portlets.utils
 from portlets.models import Slot
 
 # lfs import
@@ -29,10 +28,11 @@ def lfs_portlet_slot(context, slot_name):
     """
     request = context.get("request")
 
-    instance = context.get("category") or \
-               context.get("product") or \
-               context.get("page") or \
-               lfs.core.utils.get_default_shop(request)
+    instance = \
+        context.get("category") or \
+        context.get("product") or \
+        context.get("page") or \
+        lfs.core.utils.get_default_shop(request)
 
     # if one of product/page/category is set by another templatetag: issue #26
     if instance is None or not hasattr(instance, 'id'):
@@ -51,7 +51,7 @@ def lfs_portlet_slot(context, slot_name):
             return {"portlets": []}
 
         # Get portlets for given instance
-        temp = portlets.utils.get_portlets(instance, slot)
+        temp = slot.get_portlets(instance)
 
         # Get inherited portlets
         try:
@@ -61,7 +61,7 @@ def lfs_portlet_slot(context, slot_name):
 
         while instance:
             # If the portlets are blocked no portlets should be added
-            if portlets.utils.is_blocked(instance, slot):
+            if slot.is_blocked(instance):
                 break
 
             # If the instance has no get_parent_for_portlets, there are no portlets
@@ -74,7 +74,7 @@ def lfs_portlet_slot(context, slot_name):
             if instance is None:
                 break
 
-            parent_portlets = portlets.utils.get_portlets(instance, slot)
+            parent_portlets = slot.get_portlets(instance)
             parent_portlets.reverse()
             for p in parent_portlets:
                 if p not in temp:

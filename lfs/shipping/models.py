@@ -1,6 +1,5 @@
 # django imports
 from django.conf import settings
-from django.contrib.contenttypes import generic
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
@@ -12,7 +11,7 @@ from lfs.tax.models import Tax
 
 # Load logger
 import logging
-logger = logging.getLogger("default")
+logger = logging.getLogger(__name__)
 
 
 class ActiveShippingMethodManager(models.Manager):
@@ -83,6 +82,7 @@ class ShippingMethod(models.Model, Criteria):
 
     class Meta:
         ordering = ("priority", )
+        app_label = 'shipping'
 
     def __unicode__(self):
         return self.name
@@ -155,6 +155,7 @@ class ShippingMethodPrice(models.Model, Criteria):
 
     class Meta:
         ordering = ("priority", )
+        app_label = 'shipping'
 
     def __unicode__(self):
         return u"%s" % self.price

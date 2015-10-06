@@ -3,7 +3,7 @@ from copy import deepcopy
 
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes import generic
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
@@ -41,17 +41,17 @@ class Customer(models.Model):
 
     sa_content_type = models.ForeignKey(ContentType, related_name="sa_content_type", null=True)
     sa_object_id = models.PositiveIntegerField(null=True)
-    selected_shipping_address = generic.GenericForeignKey('sa_content_type', 'sa_object_id')
+    selected_shipping_address = GenericForeignKey('sa_content_type', 'sa_object_id')
 
     dsa_object_id = models.PositiveIntegerField(null=True)
-    default_shipping_address = generic.GenericForeignKey('sa_content_type', 'dsa_object_id')
+    default_shipping_address = GenericForeignKey('sa_content_type', 'dsa_object_id')
 
     ia_content_type = models.ForeignKey(ContentType, related_name="ia_content_type", null=True)
     ia_object_id = models.PositiveIntegerField(null=True)
-    selected_invoice_address = generic.GenericForeignKey('ia_content_type', 'ia_object_id')
+    selected_invoice_address = GenericForeignKey('ia_content_type', 'ia_object_id')
 
     dia_object_id = models.PositiveIntegerField(null=True)
-    default_invoice_address = generic.GenericForeignKey('ia_content_type', 'dia_object_id')
+    default_invoice_address = GenericForeignKey('ia_content_type', 'dia_object_id')
 
     selected_country = models.ForeignKey(Country, verbose_name=_(u"Selected country"), blank=True, null=True)
 
@@ -84,8 +84,8 @@ class Customer(models.Model):
         """Returns the selected shipping address.
         """
         return self.selected_shipping_address or \
-               self.selected_invoice_address or \
-               None
+            self.selected_invoice_address or \
+            None
 
     def sync_default_to_selected_addresses(self, force=False):
         # Synchronize selected addresses with default addresses
@@ -143,6 +143,9 @@ class Customer(models.Model):
         self.sync_selected_to_default_invoice_address(force)
         self.sync_selected_to_default_shipping_address(force)
 
+    class Meta:
+        app_label = 'customer'
+
 
 class BankAccount(models.Model):
     """
@@ -170,6 +173,9 @@ class BankAccount(models.Model):
 
     def __unicode__(self):
         return u"%s / %s" % (self.account_number, self.bank_name)
+
+    class Meta:
+        app_label = 'customer'
 
 
 class CreditCard(models.Model):
@@ -203,3 +209,6 @@ class CreditCard(models.Model):
 
     def __unicode__(self):
         return u"%s / %s" % (self.type, self.owner)
+
+    class Meta:
+        app_label = 'customer'

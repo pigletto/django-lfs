@@ -3,7 +3,7 @@ import datetime
 
 # django imports
 from django.conf import settings
-from django.contrib.contenttypes import generic
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils.encoding import force_unicode
@@ -101,7 +101,7 @@ class Criterion(models.Model):
     """
     content_type = models.ForeignKey(ContentType, verbose_name=_(u"Content type"), related_name="content_type")
     content_id = models.PositiveIntegerField(_(u"Content id"))
-    content = generic.GenericForeignKey(ct_field="content_type", fk_field="content_id")
+    content = GenericForeignKey(ct_field="content_type", fk_field="content_id")
     sub_type = models.CharField(_(u"Sub type"), max_length=100, blank=True)
 
     position = models.PositiveIntegerField(_(u"Position"), default=999)
@@ -109,6 +109,7 @@ class Criterion(models.Model):
 
     class Meta:
         ordering = ("position", )
+        app_label = 'criteria'
 
     EQUAL = 0
     LESS_THAN = 1
@@ -409,6 +410,9 @@ class CartPriceCriterion(Criterion):
         else:
             return False
 
+    class Meta:
+        app_label = 'criteria'
+
 
 class CombinedLengthAndGirthCriterion(Criterion):
     """
@@ -460,6 +464,9 @@ class CombinedLengthAndGirthCriterion(Criterion):
         else:
             return False
 
+    class Meta:
+        app_label = 'criteria'
+
 
 class CountryCriterion(Criterion):
     """
@@ -500,6 +507,9 @@ class CountryCriterion(Criterion):
         else:
             return country not in self.value.all()
 
+    class Meta:
+        app_label = 'criteria'
+
 
 class HeightCriterion(Criterion):
     """
@@ -537,6 +547,9 @@ class HeightCriterion(Criterion):
             return True
         else:
             return False
+
+    class Meta:
+        app_label = 'criteria'
 
 
 class LengthCriterion(Criterion):
@@ -576,6 +589,9 @@ class LengthCriterion(Criterion):
         else:
             return False
 
+    class Meta:
+        app_label = 'criteria'
+
 
 class PaymentMethodCriterion(Criterion):
     """
@@ -611,7 +627,7 @@ class PaymentMethodCriterion(Criterion):
 
     def is_valid(self):
         # see ShippingMethodCriterion for what's going on here
-        import lfs.shipping.utils
+        import lfs.payment.utils
         if isinstance(self.content, PaymentMethod):
             is_payment_method = True
         else:
@@ -625,16 +641,19 @@ class PaymentMethodCriterion(Criterion):
             return payment_method not in self.value.all()
         elif self.operator == self.IS_VALID:
             for pm in self.value.all():
-                if not lfs.criteria.utils.is_valid(self.request, pm, self.product):
+                if not pm.is_valid(self.request, self.product):
                     return False
             return True
         elif self.operator == self.IS_NOT_VALID:
             for pm in self.value.all():
-                if lfs.criteria.utils.is_valid(self.request, pm, self.product):
+                if pm.is_valid(self.request, self.product):
                     return False
             return True
         else:
             return False
+
+    class Meta:
+        app_label = 'criteria'
 
 
 class ShippingMethodCriterion(Criterion):
@@ -690,16 +709,19 @@ class ShippingMethodCriterion(Criterion):
             return shipping_method not in self.value.all()
         elif self.operator == self.IS_VALID:
             for sm in self.value.all():
-                if not lfs.criteria.utils.is_valid(self.request, sm, self.product):
+                if not sm.is_valid(self.request, self.product):
                     return False
             return True
         elif self.operator == self.IS_NOT_VALID:
             for sm in self.value.all():
-                if lfs.criteria.utils.is_valid(self.request, sm, self.product):
+                if sm.is_valid(self.request, self.product):
                     return False
             return True
         else:
             return False
+
+    class Meta:
+        app_label = 'criteria'
 
 
 class WeightCriterion(Criterion):
@@ -739,6 +761,9 @@ class WeightCriterion(Criterion):
         else:
             return False
 
+    class Meta:
+        app_label = 'criteria'
+
 
 class WidthCriterion(Criterion):
     """
@@ -776,3 +801,6 @@ class WidthCriterion(Criterion):
             return True
 
         return False
+
+    class Meta:
+        app_label = 'criteria'
