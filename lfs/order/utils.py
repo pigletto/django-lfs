@@ -233,7 +233,7 @@ def add_order(request):
     customer.save()
 
     # Send signal before cart is deleted.
-    order_created.send({"order": order, "cart": cart, "request": request})
+    order_created.send(order, cart=cart, request=request)
 
     cart.delete()
 
