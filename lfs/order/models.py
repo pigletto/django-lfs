@@ -244,16 +244,10 @@ class OrderItemPropertyValue(models.Model):
 
 
 class OrderDeliveryTime(DeliveryTimeBase):
-    id = models.AutoField(primary_key=True, unique=False, default=1)
-    deliverytime_ptr = models.IntegerField(null=True)
     order = models.OneToOneField(Order, verbose_name=_('Order'), related_name='delivery_time')
 
     def _get_instance(self, min, max, unit):
         return self.__class__(min=min, max=max, unit=unit, order=self.order)
-
-    def as_string(self):
-        out = super(OrderDeliveryTime, self).as_string()
-        return '[{0}] {1}'.format(self.order.number, out)
 
     def __unicode__(self):
         return u'[{0}] {1}'.format(self.order.number, self.round().as_string())
