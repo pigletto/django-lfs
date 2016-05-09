@@ -1,4 +1,6 @@
 # django imports
+import hashlib
+
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
@@ -111,7 +113,11 @@ post_save.connect(order_item_listener, sender=OrderItem)
 
 # Page
 def page_saved_listener(sender, instance, **kwargs):
-    cache.delete("%s-page-%s" % (settings.CACHE_MIDDLEWARE_KEY_PREFIX, instance.slug))
+    cache_key = "%s-page-%s" % (settings.CACHE_MIDDLEWARE_KEY_PREFIX, instance.slug)
+    cache_key_hash = hashlib.md5(cache_key).hexdigest()
+    cache.delete(cache_key)
+    cache.delete(cache_key_hash)
+
     cache.delete("%s-pages" % settings.CACHE_MIDDLEWARE_KEY_PREFIX)
 post_save.connect(page_saved_listener, sender=Page)
 
@@ -137,7 +143,11 @@ post_save.connect(shipping_method_saved_listener, sender=ShippingMethod)
 
 # Shop
 def shop_saved_listener(sender, instance, **kwargs):
-    cache.delete("%s-shop-%s" % (settings.CACHE_MIDDLEWARE_KEY_PREFIX, instance.id))
+    cache_key = "%s-shop-%s" % (settings.CACHE_MIDDLEWARE_KEY_PREFIX, instance.id)
+    cache_key_hash = hashlib.md5(cache_key).hexdigest()
+    cache.delete(cache_key)
+    cache.delete(cache_key_hash)
+
 post_save.connect(shop_saved_listener, sender=Shop)
 
 
@@ -212,8 +222,17 @@ def update_product_cache(instance):
     # if product was changed then we have to clear all product_navigation caches
     invalidate_cache_group_id('product_navigation')
     invalidate_cache_group_id('properties-%s' % parent.id)
-    cache.delete("%s-product-%s" % (settings.CACHE_MIDDLEWARE_KEY_PREFIX, parent.id))
-    cache.delete("%s-product-%s" % (settings.CACHE_MIDDLEWARE_KEY_PREFIX, parent.slug))
+
+    cache_key = "%s-product-%s" % (settings.CACHE_MIDDLEWARE_KEY_PREFIX, parent.id)
+    cache.delete(cache_key)
+    cache_key_hash = hashlib.md5(cache_key).hexdigest()
+    cache.delete(cache_key_hash)
+
+    cache_key_slug = "%s-product-%s" % (settings.CACHE_MIDDLEWARE_KEY_PREFIX, parent.slug)
+    cache_key_slug_hash = hashlib.md5(cache_key_slug).hexdigest()
+    cache.delete(cache_key_slug)
+    cache.delete(cache_key_slug_hash)
+
     cache.delete("%s-product-images-%s" % (settings.CACHE_MIDDLEWARE_KEY_PREFIX, parent.id))
     cache.delete("%s-related-products-%s" % (settings.CACHE_MIDDLEWARE_KEY_PREFIX, parent.id))
     cache.delete("%s-product-categories-%s-False" % (settings.CACHE_MIDDLEWARE_KEY_PREFIX, parent.id))
@@ -231,7 +250,10 @@ def update_product_cache(instance):
         pass
 
     for variant in parent.get_variants():
-        cache.delete("%s-product-%s" % (settings.CACHE_MIDDLEWARE_KEY_PREFIX, variant.id))
+        cache_key = "%s-product-%s" % (settings.CACHE_MIDDLEWARE_KEY_PREFIX, variant.id)
+        cache.delete(cache_key)
+        cache_key_hash = hashlib.md5(cache_key).hexdigest()
+        cache.delete(cache_key_hash)
         cache.delete("%s-product-%s" % (settings.CACHE_MIDDLEWARE_KEY_PREFIX, parent.slug))
         cache.delete("%s-product-images-%s" % (settings.CACHE_MIDDLEWARE_KEY_PREFIX, variant.id))
         cache.delete("%s-related-products-%s" % (settings.CACHE_MIDDLEWARE_KEY_PREFIX, variant.id))
@@ -244,9 +266,16 @@ def update_cart_cache(instance):
     """Deletes all cart relevant caches.
     """
     if instance.user:
-        cache.delete("%s-cart-%s" % (settings.CACHE_MIDDLEWARE_KEY_PREFIX, instance.user.pk))
-    
-    cache.delete("%s-cart-%s" % (settings.CACHE_MIDDLEWARE_KEY_PREFIX, instance.session))
+        cache_key = "%s-cart-%s" % (settings.CACHE_MIDDLEWARE_KEY_PREFIX, instance.user.pk)
+        cache_key_hash = hashlib.md5(cache_key).hexdigest()
+        cache.delete(cache_key)
+        cache.delete(cache_key_hash)
+
+    cache_key = "%s-cart-%s" % (settings.CACHE_MIDDLEWARE_KEY_PREFIX, instance.session)
+    cache_key_hash = hashlib.md5(cache_key).hexdigest()
+    cache.delete(cache_key)
+    cache.delete(cache_key_hash)
+
     cache.delete("%s-cart-items-%s" % (settings.CACHE_MIDDLEWARE_KEY_PREFIX, instance.id))
     cache.delete("%s-cart-costs-True-%s" % (settings.CACHE_MIDDLEWARE_KEY_PREFIX, instance.id))
     cache.delete("%s-cart-costs-False-%s" % (settings.CACHE_MIDDLEWARE_KEY_PREFIX, instance.id))
